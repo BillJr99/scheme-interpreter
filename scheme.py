@@ -74,8 +74,22 @@ def apply_primitive(procedure, args, env):
     >>> apply_primitive(plus, twos, env)
     4
     """
-    "*** YOUR CODE HERE ***"
+    if not isinstance(args, Pair):
+        raise SchemeError("Invalid arguments: {0}".format(args))
 
+    #convert list to python lists
+    args_list = []
+    while isinstance(args, Pair):
+        args_list.append(args.first)
+        args = args.second
+
+    try:
+        if procedure.use_env:
+            return procedure.fn(*args_list, env)
+        else:
+            return procedure.fn(*args_list)
+    except TypeError:
+        raise SchemeError("Invalid arguments: {0}".format(args))
 ################
 # Environments #
 ################
