@@ -15,6 +15,108 @@
 
 ;;; 1.1.1
 
++
+; expect #[primitive]
+
+(+ 1 2)
+; expect 3
+
+(* 3 4 (- 5 2) 1)
+; expect 36
+
+(odd? 31)
+; expect True
+
+(define tau (* 2 3.1415926))
+; expect tau
+
+(define x 15)
+; expect x
+
+(define y (* 2 x))
+; expect y
+
+y
+; expect 30
+
+(+ y (* y 2) 1)
+; 91
+
+(define x 20)
+; expect x
+
+x
+; expect 20
+
+'hello
+; expect hello
+
+'(1 . 2)
+; expect (1 . 2)
+
+'(1 (2 three . (4 . 5)))
+; expect (1 (2 three 4 . 5))
+
+(car '(a b))
+; expect a
+
+(eval (cons 'car '('(1 2))))
+; expects 1
+
+(begin (+ 2 3) (+ 5 6))
+; expect 11
+
+(begin (display 3) (newline) (+ 2 3))
+; expect 5
+
+(begin (print 3) '(+ 2 3))
+; expect (+ 2 3)
+
+(begin 30 'hello)
+; expect hello
+
+(lambda (x y) (+ x y))
+; expect (lambda (x y) (+ x y))
+
+(lambda (y) (print y) (* y 2))
+; expect (lambda (y) (print y) (* y 2))
+
+(define f (lambda (x) (* x 2)))
+; expect f
+
+(define (square x) (* x x))
+; expect square
+
+square
+; expect (lambda (x) (* x x))
+
+(square 2)
+; expect 4
+
+(+)
+; expect 0
+
+(+ 1 3 4)
+; expect 8
+
+(*)
+; expect 1
+
+(* 2 6 3)
+; expect 36
+
+(car (1 2 3))
+; expect 1
+
+(if (= 4 2) true false)
+; expect False
+
+(if (= 4 4) (* 1 2) (+ 3 4))
+; expect 2
+
+(if (= 4 2) true)
+; expect okay
+
 10
 ; expect 10
 
@@ -51,13 +153,6 @@
    (+ (- 10 7)
       6))
 ; expect 57
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Move the following (exit) line to run additional tests. ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(exit)
-
 
 ;;; 1.1.2
 
@@ -105,6 +200,7 @@ circumference
 (f 5)
 ; expect 136
 
+(exit)
 ;;; 1.1.6
 
 (define (abs x)
