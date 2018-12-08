@@ -117,6 +117,46 @@ square
 (if (= 4 2) true)
 ; expect okay
 
+(and)
+; expect True
+
+(or)
+; expect False
+
+(and 4 5 6)
+; expect 6
+
+(or 5 2 1)
+; expect 5
+
+(and #t #f 42 (/ 1 0))
+; expect False
+
+(or 4 #t (/ 1 0))
+; expect 4
+
+(cond ((= 4 3) 'nope)
+              ((= 4 4) 'hi)
+              (else 'wait))
+; expect hi
+
+(cond ((= 4 3) 'wat)
+              ((= 4 4))
+              (else 'hm))
+
+; expect True
+
+(cond ((= 4 4) 'here 42)
+              (else 'wat 0))
+; expect 42
+
+(cond (12))
+; expect 12
+
+(cond ((= 4 3))
+              ('hi))
+; expect hi
+
 10
 ; expect 10
 
