@@ -157,6 +157,26 @@ square
               ('hi))
 ; expect hi
 
+(define x 'hi)
+; expect x
+
+(define y 'bye)
+; expect y
+
+(let ((x 42)
+              (y (* 5 10)))
+          (list x y))
+; expect (42 50)
+
+(list x y)
+; expect (hi bye)
+
+(let ((x 42) (y 16)) (+ x y))
+; expect 58
+
+(let ((x 42)) x 1 2)
+; expect 2
+
 10
 ; expect 10
 
