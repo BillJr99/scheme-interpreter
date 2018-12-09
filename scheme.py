@@ -62,7 +62,7 @@ def scheme_apply(procedure, args, env):
         frame = env.make_call_frame(procedure.formals, args)
         return scheme_eval(procedure.body, frame)
     elif isinstance(procedure, MuProcedure):
-        "*** YOUR CODE HERE ***"
+        return scheme_eval(procedure.body, env) 
     else:
         raise SchemeError("Cannot call {0}".format(str(procedure)))
 
@@ -221,7 +221,11 @@ def do_mu_form(vals):
     check_form(vals, 2)
     formals = vals[0]
     check_formals(formals)
-    "*** YOUR CODE HERE ***"
+    body = vals[1]
+    if len(vals) - 1 > 1:
+        body = Pair("begin", vals.second)
+
+    return MuProcedure(formals, body)
 
 def do_define_form(vals, env):
     """Evaluate a define form with parameters VALS in environment ENV."""
