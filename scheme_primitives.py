@@ -116,6 +116,9 @@ def scheme_cdr(x):
     check_type(x, scheme_pairp, 0, 'cdr')
     return x.second
 
+@primitive("sqrt")
+def scheme_sqrt(x):
+    return math.sqrt(x)
 
 @primitive("list")
 def scheme_list(*vals):
