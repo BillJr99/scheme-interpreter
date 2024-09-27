@@ -116,6 +116,47 @@ def scheme_cdr(x):
     check_type(x, scheme_pairp, 0, 'cdr')
     return x.second
 
+@primitive("apply")
+def scheme_apply_op(operator, lst1, lst2):
+    check_type(lst1, scheme_listp, 1, "apply")
+    check_type(lst2, scheme_listp, 2, "apply")
+
+    result = nil
+    while lst1 is not nil and lst2 is not nil:
+        # Apply the Python function stored in operator.fn
+        result = Pair(operator.fn(lst1.first, lst2.first), result)
+        lst1, lst2 = lst1.second, lst2.second
+
+    if lst1 is not nil or lst2 is not nil:
+        raise SchemeError("apply requires lists of equal length")
+
+    return result
+
+@primitive("map")
+def scheme_map(operator, lst):
+    check_type(lst, scheme_listp, 1, "map")
+    
+    result = lst.first  # Start with the first value
+    lst = lst.second
+    
+    # Apply the operator to accumulate the results
+    while lst is not nil:
+        result = operator.fn(result, lst.first)
+        lst = lst.second
+    
+    return result
+
+@primitive("reverse")
+def scheme_reverse_list(lst):
+    check_type(lst, scheme_listp, 1, "reverse")
+
+    result = nil
+    while lst is not nil:
+        result = Pair(lst.first, result)  # Prepend elements to reverse the list
+        lst = lst.second
+
+    return result
+
 @primitive("sqrt")
 def scheme_sqrt(x):
     return math.sqrt(x)
