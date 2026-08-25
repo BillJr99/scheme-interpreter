@@ -61,7 +61,7 @@ x
 ; expect a
 
 (eval (cons 'car '('(1 2))))
-; expects 1
+; expect 1
 
 (begin (+ 2 3) (+ 5 6))
 ; expect 11
@@ -105,7 +105,7 @@ square
 (* 2 6 3)
 ; expect 36
 
-(car (1 2 3))
+(car '(1 2 3))
 ; expect 1
 
 (if (= 4 2) true false)
@@ -259,6 +259,48 @@ circumference
   (sum-of-squares (+ a 1) (* a 2)))
 (f 5)
 ; expect 136
+
+
+;;; map and apply
+
+(map (lambda (n) (* n n)) '(1 2 3))
+; expect (1 4 9)
+
+(map - '(1 2 3))
+; expect (-1 -2 -3)
+
+(map - '(1 2 3) '(4 5 6))
+; expect (-3 -3 -3)
+
+(map car '((1 2) (3 4)))
+; expect (1 3)
+
+(map (lambda (x) x) '())
+; expect ()
+
+(apply + '(1 2 3))
+; expect 6
+
+(apply + 1 '(2 3))
+; expect 6
+
+(apply + '())
+; expect 0
+
+(apply car '((1 2)))
+; expect 1
+
+(define (double x) (* x 2))
+; expect double
+
+(apply + (map double '(1 2 3)))
+; expect 12
+
+(map + '(1 2) '(3))
+; expect Error
+
+(apply + 1)
+; expect Error
 
 (exit)
 ;;; 1.1.6
