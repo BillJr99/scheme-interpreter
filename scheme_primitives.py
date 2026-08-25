@@ -36,14 +36,52 @@ class PrimitiveProcedure:
 
 _PRIMITIVES = []
 
-def primitive(*names):
-    """An annotation to convert a Python function into a PrimitiveProcedure."""
+def primitive(*names, use_env=False):
+    """An annotation to convert a Python function into a PrimitiveProcedure.
+
+    When USE_ENV is true the current environment is passed as a final argument,
+    which higher-order primitives such as map and apply need in order to call
+    back into the evaluator.
+    """
     def add(fn):
-        proc = PrimitiveProcedure(fn)
+        proc = PrimitiveProcedure(fn, use_env=use_env)
         for name in names:
             _PRIMITIVES.append((name,proc))
         return fn
     return add
+
+
+def _scheme_apply():
+    """Resolve scheme.scheme_apply lazily.
+
+    scheme_primitives cannot import scheme at module load time (scheme imports
+    this module), and scheme.py is usually running as __main__ rather than under
+    its own name, so look in both places before falling back to a real import.
+    """
+    for _name in ("scheme", "__main__"):
+        _fn = getattr(sys.modules.get(_name), "scheme_apply", None)
+        if _fn is not None:
+            return _fn
+    from scheme import scheme_apply
+    return scheme_apply
+
+
+def _to_list(vals):
+    """Build a Scheme list from a Python sequence."""
+    result = nil
+    for v in reversed(vals):
+        result = Pair(v, result)
+    return result
+
+
+def _to_python(lst, who, argno):
+    """Flatten a Scheme list into a Python list."""
+    check_type(lst, scheme_listp, argno, who)
+    out = []
+    while lst is not nil:
+        out.append(lst.first)
+        lst = lst.second
+    return out
 
 def add_primitives(frame):
     """Enter bindings in _PRIMITIVES into FRAME, an environment frame."""
@@ -116,35 +154,33 @@ def scheme_cdr(x):
     check_type(x, scheme_pairp, 0, 'cdr')
     return x.second
 
-@primitive("apply")
-def scheme_apply_op(operator, lst1, lst2):
-    check_type(lst1, scheme_listp, 1, "apply")
-    check_type(lst2, scheme_listp, 2, "apply")
+@primitive("apply", use_env=True)
+def scheme_apply_op(operator, *rest):
+    """(apply PROC ARG ... ARGS) -- call PROC, spreading the final list ARGS."""
+    env = rest[-1]
+    args = rest[:-1]
+    if not args:
+        raise SchemeError("apply requires a procedure and an argument list")
+    spread = _to_python(args[-1], "apply", len(args))
+    return _scheme_apply()(operator, _to_list(list(args[:-1]) + spread), env)
 
-    result = nil
-    while lst1 is not nil and lst2 is not nil:
-        # Apply the Python function stored in operator.fn
-        result = Pair(operator.fn(lst1.first, lst2.first), result)
-        lst1, lst2 = lst1.second, lst2.second
+@primitive("map", use_env=True)
+def scheme_map(operator, *rest):
+    """(map PROC LIST ...) -- apply PROC across the lists, elementwise.
 
-    if lst1 is not nil or lst2 is not nil:
-        raise SchemeError("apply requires lists of equal length")
-
-    return result
-
-@primitive("map")
-def scheme_map(operator, lst):
-    check_type(lst, scheme_listp, 1, "map")
-    
-    result = lst.first  # Start with the first value
-    lst = lst.second
-    
-    # Apply the operator to accumulate the results
-    while lst is not nil:
-        result = operator.fn(result, lst.first)
-        lst = lst.second
-    
-    return result
+    Works with user-defined procedures as well as primitives, and accepts more
+    than one list, in which case PROC is called with one element from each.
+    """
+    env = rest[-1]
+    lists = rest[:-1]
+    if not lists:
+        raise SchemeError("map requires at least one list")
+    cols = [_to_python(l, "map", i + 1) for i, l in enumerate(lists)]
+    if any(len(c) != len(cols[0]) for c in cols):
+        raise SchemeError("map requires lists of equal length")
+    apply_fn = _scheme_apply()
+    return _to_list([apply_fn(operator, _to_list(list(row)), env)
+                     for row in zip(*cols)])
 
 @primitive("reverse")
 def scheme_reverse_list(lst):

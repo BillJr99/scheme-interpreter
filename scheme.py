@@ -59,10 +59,15 @@ def scheme_apply(procedure, args, env):
     if isinstance(procedure, PrimitiveProcedure):
         return apply_primitive(procedure, args, env)
     elif isinstance(procedure, LambdaProcedure):
-        frame = env.make_call_frame(procedure.formals, args)
+        # A lambda is lexically scoped: its body is evaluated in a frame
+        # extending the environment it was DEFINED in, not the calling one.
+        frame = procedure.env.make_call_frame(procedure.formals, args)
         return scheme_eval(procedure.body, frame)
     elif isinstance(procedure, MuProcedure):
-        return scheme_eval(procedure.body, env) 
+        # A mu is dynamically scoped: its body is evaluated in a frame
+        # extending the CALLING environment, so free names resolve there.
+        frame = env.make_call_frame(procedure.formals, args)
+        return scheme_eval(procedure.body, frame)
     else:
         raise SchemeError("Cannot call {0}".format(str(procedure)))
 
@@ -166,7 +171,15 @@ class LambdaProcedure:
         self.env = env
 
     def __str__(self):
-        return "(lambda {0} {1})".format(str(self.formals), str(self.body))
+        body = self.body
+        if (isinstance(body, Pair) and body.first == "begin"
+                and isinstance(body.second, Pair)):
+            # A multi-expression body is stored wrapped in a begin form, so
+            # print the expressions it wraps rather than the wrapper itself.
+            body_str = str(body.second)[1:-1]
+        else:
+            body_str = str(body)
+        return "(lambda {0} {1})".format(str(self.formals), body_str)
 
     def __repr__(self):
         args = (self.formals, self.body, self.env)
@@ -238,6 +251,7 @@ def do_define_form(vals, env):
         return target
     elif isinstance(target, Pair):
         symbol = target.first
+        check_type(symbol, scheme_symbolp, 0, "define")
         vals = Pair(target.second, vals.second)
         func_val = do_lambda_form(vals, env)
         env.bindings[symbol] = func_val
