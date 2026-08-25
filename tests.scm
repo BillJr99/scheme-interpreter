@@ -302,6 +302,42 @@ circumference
 (apply + 1)
 ; expect Error
 
+
+;;; lexical scope (lambda) and dynamic scope (mu)
+
+(define compose (lambda (f g) (lambda (x) (f (g x)))))
+; expect compose
+
+(define apply-twice (lambda (f) (compose f f)))
+; expect apply-twice
+
+((apply-twice (lambda (x) (* 2 x))) 5)
+; expect 20
+
+(define (make-adder n) (lambda (x) (+ x n)))
+; expect make-adder
+
+(define add5 (make-adder 5))
+; expect add5
+
+(define n 100)
+; expect n
+
+(add5 1)
+; expect 6
+
+(define dyn (mu (x) (+ x y)))
+; expect dyn
+
+(define lex (lambda (x y) (dyn (+ x x))))
+; expect lex
+
+(lex 3 7)
+; expect 13
+
+(define (0 x) x)
+; expect Error
+
 (exit)
 ;;; 1.1.6
 
